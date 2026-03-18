@@ -1,0 +1,12 @@
+# Ignore everything
+*
+
+# Except these
+!.gitignore
+!.gitattributes
+!gallery (3).html
+!intro-bg.mp4
+!site-plan.jpg
+!studio-bg.mp4
+!videos/
+!videos/**
