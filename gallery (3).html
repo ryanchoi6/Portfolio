@@ -469,6 +469,7 @@ body{font-family:'Cormorant Garamond',Georgia,serif;cursor:crosshair}
     <span id="scroll-hint-text">Scroll to enter</span>
     <span id="scroll-arrow">↓</span>
   </div>
+  <div id="audio-hint" style="position:absolute;bottom:2.2rem;left:50%;transform:translateX(-50%);font-family:'Josefin Sans',sans-serif;font-weight:100;font-size:.52rem;letter-spacing:.45em;text-transform:uppercase;color:rgba(201,168,76,.55);white-space:nowrap;pointer-events:none;animation:blinkPulse 2s ease-in-out infinite;">▶ Click anywhere to enable sound</div>
 </div>
 
 <!-- origami burst script -->
@@ -617,6 +618,7 @@ body{font-family:'Cormorant Garamond',Georgia,serif;cursor:crosshair}
         <polyline class="d-line" stroke="#a855f7" points="629,412 680,300 850,300"/>
         <line     class="d-line" stroke="#a855f7" x1="850" y1="300" x2="1180" y2="300"/>
         <text class="d-label" x="854" y="290" fill="#a855f7" font-size="28">The Web Studio</text>
+        <text class="d-sub"   x="854" y="324" fill="#a855f7" font-size="18">Coming Soon</text>
       </g>
 
       <!-- The Imagination Lab — green (948,415) -->
@@ -636,6 +638,7 @@ body{font-family:'Cormorant Garamond',Georgia,serif;cursor:crosshair}
         <polyline class="d-line" stroke="#00efc4" points="978,411 1060,340 1060,340"/>
         <line     class="d-line" stroke="#00efc4" x1="1060" y1="340" x2="1295" y2="340"/>
         <text class="d-label" x="1064" y="330" fill="#00efc4" font-size="28">The Imagination Lab</text>
+        <text class="d-sub"   x="1064" y="364" fill="#00efc4" font-size="18">Coming Soon</text>
       </g>
 
     </svg>
@@ -665,6 +668,12 @@ body{font-family:'Cormorant Garamond',Georgia,serif;cursor:crosshair}
 
 <!-- About label -->
 <div id="about-label" onclick="openAbout()">About Moongi</div>
+
+<!-- Coming Soon badge (web + imag rooms) -->
+<div id="coming-soon-badge" style="display:none;position:fixed;top:50%;left:50%;transform:translate(-50%,-50%);z-index:30;text-align:center;pointer-events:none;">
+  <div style="font-family:'Big Shoulders Display',sans-serif;font-weight:900;font-size:clamp(3rem,8vw,7rem);letter-spacing:.22em;text-transform:uppercase;color:rgba(255,255,255,.08);">Coming Soon</div>
+  <div style="font-family:'Josefin Sans',sans-serif;font-weight:100;font-size:.65rem;letter-spacing:.5em;text-transform:uppercase;color:rgba(255,255,255,.3);margin-top:.8rem;">Projects launching shortly</div>
+</div>
 
 <!-- Tutorial -->
 <div id="tutorial">
@@ -761,28 +770,30 @@ var ROOMS = {
   },
   web: {
     name: 'The Web Studio',
-    video: 'web-bg.mp4',              // ← replace with your web studio video
-    imgW: 1920, imgH: 1080,           // ← update to match your video resolution
+    video: 'web-bg.mp4',
+    imgW: 1920, imgH: 1080,
     spots: [
-      // Add your web design project hotspots here
-      // { sx:400, sy:200, sw:200, sh:150, title:'Na-mu Lofts', sub:'Real Estate Web · AppFolio', video:'namu.mp4' },
+      { sx:760, sy:340, sw:400, sh:280, title:'Coming Soon', sub:'Web design projects launching shortly', video:'' },
     ]
   },
   brand: {
     name: 'The Brand Vault',
-    video: 'brand-bg.mp4',            // ← replace with your brand room video
-    imgW: 1920, imgH: 1080,
+    video: "videos/Brand vault/Brand bg.mp4",
+    imgW: 1920, imgH: 1076,
     spots: [
-      // Add brand project hotspots here
-      // { sx:300, sy:180, sw:180, sh:140, title:'Amorepacific', sub:'AI Video Campaign', video:'amore.mp4' },
+      { sx:88,  sy:150, sw:255, sh:310, title:'Fashion Lookbook',  sub:'Editorial fashion campaign',        video:"videos/Brand vault/fashion lookbook.mp4" },
+      { sx:428, sy:150, sw:240, sh:310, title:'Golf Course',        sub:'Luxury golf resort marketing',      video:"videos/Brand vault/Golf Course.mp4" },
+      { sx:626, sy:150, sw:240, sh:310, title:'Vitality Spa',       sub:'Luxury wellness brand campaign',    video:"videos/Brand vault/Vitality spa.mp4" },
+      { sx:887, sy:150, sw:137, sh:310, title:'Dog Bakery',         sub:'Pet brand identity & marketing',    video:"videos/Brand vault/dog bakery.mp4" },
+      { sx:1019,sy:155, sw:210, sh:305, title:'Skin Care',           sub:'Luxury skincare brand campaign',    video:"videos/Brand vault/skincare.mp4" },
     ]
   },
   imag: {
     name: 'The Imagination Lab',
-    video: 'imag-bg.mp4',             // ← replace with your imagination lab video
+    video: 'imag-bg.mp4',
     imgW: 1920, imgH: 1080,
     spots: [
-      // Add creative imagery hotspots here
+      { sx:760, sy:340, sw:400, sh:280, title:'Coming Soon', sub:'AI creative imagery launching shortly', video:'' },
     ]
   }
 };
@@ -843,6 +854,9 @@ function _onScroll(){ enterStudio(); }
 window.addEventListener('wheel', _onScroll, {passive:true});
 window.addEventListener('touchmove', _onScroll, {passive:true});
 
+// Auto-enter after intro animation (~7s)
+setTimeout(enterStudio, 7000);
+
 // ══════════════════════════════════════════════════════════
 // AUDIO ENGINE — pre-unlock on gesture, _play queues until ready
 // ══════════════════════════════════════════════════════════
@@ -854,6 +868,11 @@ function _getAC(){
   if(!_ac) _ac = new (window.AudioContext || window.webkitAudioContext)();
   return _ac;
 }
+
+// Attempt AudioContext resume on page load (before any gesture)
+document.addEventListener('DOMContentLoaded', function(){
+  try{ _getAC().resume(); }catch(e){}
+});
 
 // THE KEY TRICK: connect AC to the muted autoplay video.
 // Browser grants AudioContext running state because the video
@@ -884,12 +903,24 @@ function _getAC(){
   }, {once:true});
 })();
 
-// Fallback: any user gesture
+// Fallback: any user gesture — resume AC, play intro SFX, hide hint
+var _sfxPlayed = false;
+function _unlockAudio(){
+  var ac = _getAC();
+  var hint = document.getElementById('audio-hint');
+  if(hint) hint.style.display = 'none';
+  if(ac.state === 'suspended'){
+    ac.resume().then(function(){
+      if(!_sfxPlayed){ _sfxPlayed = true; sfxIntro(); }
+    });
+  } else if(!_sfxPlayed){
+    _sfxPlayed = true; sfxIntro();
+  }
+}
 ['wheel','touchstart','mousedown','keydown'].forEach(function(ev){
   window.addEventListener(ev, function _ug(){
-    var ac=_getAC();
-    if(ac.state==='suspended') ac.resume();
-    window.removeEventListener(ev,_ug);
+    _unlockAudio();
+    window.removeEventListener(ev, _ug);
   }, {passive:true});
 });
 
@@ -1156,6 +1187,7 @@ function loadRoom(roomId){
   // Set video
   var vid = document.getElementById('room-video');
   vid.src = room.video;
+  vid.muted = !(roomId === 'arch' || roomId === 'brand');
   vid.load();
 
   // Show room screen
@@ -1170,9 +1202,8 @@ function loadRoom(roomId){
   document.getElementById('room-name-badge').textContent = room.name;
   document.getElementById('map-btn').style.display = 'block';
 
-  // About label only in arch room (has the island table)
-  document.getElementById('about-label').style.display =
-    (roomId === 'arch') ? 'none' : 'block';
+  document.getElementById('about-label').style.display = 'none';
+  document.getElementById('coming-soon-badge').style.display = (roomId === 'web' || roomId === 'imag') ? 'block' : 'none';
 
   // Tutorial
   setTimeout(function(){
@@ -1203,8 +1234,12 @@ function buildHotspots(room){
     el.innerHTML = '<div class="h-border"></div><div class="h-play"></div>';
 
     el.addEventListener('mouseenter', function(){
+      var isComingSoon = spot.title === 'Coming Soon';
       document.getElementById('ho-sub').textContent = spot.sub;
-      document.getElementById('hover-overlay').classList.add('on');
+      // Style overlay differently for Coming Soon
+      var hov = document.getElementById('hover-overlay');
+      hov.style.borderColor = isComingSoon ? 'rgba(255,255,255,.25)' : '#c9a84c';
+      hov.classList.add('on');
       curRing.classList.add('hover');
 
       if(_typeTimer){ clearInterval(_typeTimer); _typeTimer=null; }
@@ -1212,23 +1247,18 @@ function buildHotspots(room){
       var ht   = document.getElementById('ho-title');
       var full = spot.title;
       var chars= full.length;
-      var dur  = Math.max(0.4, chars * 0.045); // ~45ms per char
+      var dur  = Math.max(0.4, chars * 0.045);
 
-      // Set text, reset and trigger CSS typewriter animation
       ht.textContent = full;
+      ht.style.color = isComingSoon ? 'rgba(255,255,255,.45)' : '';
       ht.style.animation = 'none';
       ht.style.width = '0';
-      void ht.offsetWidth; // force reflow
+      void ht.offsetWidth;
       ht.style.animation =
         'hoTypeAnim ' + dur + 's steps(' + chars + ',end) forwards,' +
         'hoCaretAnim 0.4s step-end ' + (dur + 's') + ' 4';
 
-      // Schedule ALL ticks on AudioContext clock — room-specific sound
-      if(currentRoom === 'arch'){
-        sfxArchTypeSequence(chars, dur * 1000 / chars);
-      } else {
-        sfxTypeSequence(chars, dur * 1000 / chars);
-      }
+      // No sound for Coming Soon
     });
     el.addEventListener('mouseleave', function(){
       if(_typeTimer){ clearInterval(_typeTimer); _typeTimer=null; }
@@ -1236,10 +1266,12 @@ function buildHotspots(room){
       ht.style.animation='none';
       ht.style.width='0';
       ht.textContent='';
+      ht.style.color='';
+      document.getElementById('hover-overlay').style.borderColor='';
       document.getElementById('hover-overlay').classList.remove('on');
       curRing.classList.remove('hover');
     });
-    el.addEventListener('click',function(){ openModal(i); });
+    el.addEventListener('click',function(){ if(spot.title !== 'Coming Soon') openModal(i); });
 
     hl.appendChild(el);
     allHots.push(el);
