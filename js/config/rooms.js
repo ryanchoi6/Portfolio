@@ -17,7 +17,7 @@ export const ROOMS = {
   },
   web: {
     name: 'The Web Studio',
-    video: 'web-bg.mp4',
+    video: '',
     imgW: 1920,
     imgH: 1080,
     spots: [
@@ -39,7 +39,7 @@ export const ROOMS = {
   },
   imag: {
     name: 'The Imagination Lab',
-    video: 'imag-bg.mp4',
+    video: '',
     imgW: 1920,
     imgH: 1080,
     spots: [
